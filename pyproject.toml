@@ -14,7 +14,10 @@ dependencies = [
     "streamlit",
     "stmol",
     "py3Dmol",
-    "streamlit-molstar"
+    "streamlit-molstar",
+    "vina",
+    "protpy",
+    "meeko"
 ]
 
 [build-system]

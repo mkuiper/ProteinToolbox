@@ -34,3 +34,22 @@ This document defines the "Skills" available to the AI agents. Each skill is a s
 *   **Inputs**: `pdb_path`, `output_dir`.
 *   **Outputs**: Path to FASTA or dry-run command.
 *   **Env**: Requires `PROTEINMPNN_PATH` set.
+
+## Docking Skills (`docking_skills`)
+
+### `prepare_ligand(ligand_path, output_path)`
+*   **Description**: Converts a ligand (SDF/MOL2) to PDBQT format for docking using Meeko.
+*   **Inputs**: `ligand_path`.
+*   **Outputs**: Path to PDBQT file.
+
+### `run_docking(receptor_pdbqt, ligand_pdbqt, center, size, output_path)`
+*   **Description**: Runs AutoDock Vina to dock a ligand into a receptor.
+*   **Inputs**: Receptor/Ligand PDBQTs, Box center [x,y,z], Box size [x,y,z].
+*   **Outputs**: Path to docked poses (PDBQT).
+
+## Analysis Skills (`analysis_skills`)
+
+### `analyze_sequence(sequence)`
+*   **Description**: Calculates physicochemical properties (MW, pI, Gravy, etc.).
+*   **Inputs**: `sequence` (str).
+*   **Outputs**: Dictionary of properties.

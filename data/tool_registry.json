@@ -6,7 +6,7 @@
       "description": "A set of freely available tools for biological computation written in Python.",
       "url": "https://biopython.org/",
       "pip_package": "biopython",
-      "installed": false
+      "installed": true
     },
     {
       "name": "OpenMM",
@@ -14,7 +14,23 @@
       "description": "A high-performance toolkit for molecular simulation.",
       "url": "https://openmm.org/",
       "pip_package": "openmm",
-      "installed": false
+      "installed": true
+    },
+    {
+      "name": "AutoDock Vina",
+      "category": "Docking",
+      "description": "Fast and accurate protein-ligand docking.",
+      "url": "https://vina.scripps.edu/",
+      "pip_package": "vina",
+      "installed": true
+    },
+    {
+      "name": "protpy",
+      "category": "Analysis",
+      "description": "Protein property prediction and descriptor calculation.",
+      "url": "https://github.com/kimlabnu/protpy",
+      "pip_package": "protpy",
+      "installed": true
     },
     {
       "name": "PyMOL",
@@ -78,7 +94,7 @@
       "description": "Open-source biomolecular interaction modeling (Version 2).",
       "url": "https://github.com/jwohlwend/boltz",
       "pip_package": "boltz",
-      "installed": false
+      "installed": true
     }
   ]
 }
