@@ -9,11 +9,13 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../'
 from proteintoolbox.skills import bio_skills, sim_skills, design_skills
 from proteintoolbox.agents.crew import run_design_task
 from proteintoolbox.project import ProjectManager
+from proteintoolbox.registry import ToolRegistry
 
 st.set_page_config(page_title="ProteinToolbox", layout="wide", page_icon="🧬")
 
-# Initialize Project Manager
+# Initialize Project Manager & Registry
 pm = ProjectManager()
+registry = ToolRegistry(registry_path=os.path.join(os.getcwd(), "ProteinToolbox/data/tool_registry.json"))
 
 # Session State for Current Project
 if 'current_project' not in st.session_state:
@@ -49,6 +51,22 @@ with st.sidebar:
                 st.rerun()
             except ValueError as e:
                 st.error(str(e))
+
+    st.divider()
+    
+    # LLM Settings
+    with st.expander("LLM Settings"):
+        llm_provider = st.selectbox("Provider", ["openai", "anthropic", "gemini", "ollama"])
+        llm_api_key = st.text_input("API Key", type="password", help="Leave empty if using env vars")
+        
+        default_models = {
+            "openai": "gpt-4o",
+            "anthropic": "claude-3-5-sonnet",
+            "gemini": "gemini/gemini-1.5-pro",
+            "ollama": "ollama/llama3"
+        }
+        llm_model = st.text_input("Model", value=default_models[llm_provider])
+        llm_base_url = st.text_input("Base URL (Ollama)", value="http://localhost:11434") if llm_provider == "ollama" else None
 
     st.divider()
     st.header("Navigation")
@@ -96,12 +114,20 @@ if mode == "Workspace":
 elif mode == "Tools":
     st.header("🛠️ Direct Tool Access")
     
-    if not st.session_state.current_project:
-        st.warning("Tools generally require an active project to save outputs.")
-    
-    tab1, tab2, tab3 = st.tabs(["Biological Data", "Simulation", "Design"])
+    tab1, tab2, tab3, tab4 = st.tabs(["Registry Browser", "Biological Data", "Simulation", "Design"])
     
     with tab1:
+        st.subheader("Tool Registry & Skills")
+        st.markdown("Database of available tools for agents and users.")
+        
+        tools = registry.list_tools()
+        for t in tools:
+            with st.expander(f"{t.name} ({t.category})"):
+                st.markdown(f"**Description:** {t.description}")
+                st.markdown(f"**URL:** {t.url}")
+                st.checkbox("Installed", value=t.installed, disabled=True)
+
+    with tab2:
         st.subheader("Fetch PDB")
         pdb_id = st.text_input("PDB ID (e.g., 1CRN)", "1CRN")
         if st.button("Fetch Structure"):
@@ -116,7 +142,7 @@ elif mode == "Tools":
                 if st.session_state.current_project:
                     st.rerun() # Refresh file list
 
-    with tab2:
+    with tab3:
         st.subheader("Minimize Structure")
         # Allow selecting from project files
         if st.session_state.current_project:
@@ -134,7 +160,7 @@ elif mode == "Tools":
         else:
             st.info("Select a project to run simulations.")
 
-    with tab3:
+    with tab4:
         st.subheader("RFdiffusion (Dry Run)")
         prompt = st.text_input("Prompt", "binder_design")
         if st.button("Generate Backbone"):
@@ -149,14 +175,18 @@ elif mode == "Agent Workflow":
     user_request = st.text_area("Design Goal", "Design a nanobody binder for the Spike protein.")
     
     if st.button("Start Workflow"):
+        llm_config = {
+            "provider": llm_provider,
+            "api_key": llm_api_key if llm_api_key else None,
+            "model": llm_model,
+            "base_url": llm_base_url
+        }
+        
         with st.spinner("Agents are working..."):
             try:
-                result = run_design_task(user_request)
+                result = run_design_task(user_request, llm_config)
                 st.success("Workflow Complete!")
                 st.subheader("Result")
                 st.markdown(result)
-                
-                # If agents generated files, we'd want to refresh the project view
-                # Ideally agents should be project-aware (passing project path to them)
             except Exception as e:
                 st.error(f"An error occurred: {e}")

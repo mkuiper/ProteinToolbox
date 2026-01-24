@@ -19,8 +19,11 @@ We reserve full MCP servers for:
 *   **Language Agnostic**: If a tool is written in C++ or Rust and exposes an HTTP API, an MCP wrapper is appropriate.
 
 ## Agent Design
-*   **Librarian**: Uses `ToolRegistry` to find the right tool.
+*   **Librarian**: Uses `ToolRegistry` and `PubMed` to research tools and literature.
 *   **Architect**: Plans the high-level scientific workflow.
+*   **Sequence Engineer**: Specialized in ProteinMPNN/evolutionary analysis.
+*   **Structure Analyst**: Specialized in MD/Docking analysis.
+*   **Report Writer**: Synthesizes results into a final report.
 *   **Technician**: Executes specific "Skills" (Python functions) or generates CLI commands for external tools.
 
 ## Web GUI
@@ -28,6 +31,8 @@ We reserve full MCP servers for:
 *   **Location**: `src/proteintoolbox/gui/app.py`.
 *   **Features**:
     *   **Project Management**: Create and switch between projects (persisted in `data/projects/`).
+    *   **LLM Configuration**: Select Provider (OpenAI, Anthropic, Gemini, Ollama) and Model.
+    *   **Registry Browser**: View available tools and skills.
     *   **Direct Tool Access**: Wrappers around skills for manual use within the context of the active project.
     *   **Agent Workflow**: Interface to the CrewAI backend.
     *   **Visualization**: **Mol* (streamlit-molstar)** for high-quality, interactive 3D structure viewing.
@@ -40,7 +45,3 @@ We reserve full MCP servers for:
     *   `designed_backbones`: List of paths.
     *   `sequences`: List of sequences or FASTA paths.
     *   `scores`: Dictionary of metrics.
-
-## Future Plans
-*   **Data Compatibility**: Use JSON manifests to track file paths (PDBs, FASTA) as they move between tools.
-*   **Web GUI**: A simple interface (Streamlit/Chainlit) to construct workflows visually.
