@@ -23,6 +23,22 @@ We reserve full MCP servers for:
 *   **Architect**: Plans the high-level scientific workflow.
 *   **Technician**: Executes specific "Skills" (Python functions) or generates CLI commands for external tools.
 
+## Web GUI
+*   **Framework**: Streamlit.
+*   **Location**: `src/proteintoolbox/gui/app.py`.
+*   **Features**:
+    *   Direct Tool Access: Wrappers around skills for manual use.
+    *   Agent Workflow: Interface to the CrewAI backend.
+    *   Visualization: `stmol` + `py3Dmol` for embedding 3D structures.
+
+## Data Flow
+*   **Filesystem**: The current prototype relies on the shared filesystem (paths passed as strings).
+*   **Future**: We plan to implement a JSON-based "Manifest" or "ExperimentContext" object that tracks:
+    *   `input_pdb`: Path to starting structure.
+    *   `designed_backbones`: List of paths.
+    *   `sequences`: List of sequences or FASTA paths.
+    *   `scores`: Dictionary of metrics.
+
 ## Future Plans
 *   **Data Compatibility**: Use JSON manifests to track file paths (PDBs, FASTA) as they move between tools.
 *   **Web GUI**: A simple interface (Streamlit/Chainlit) to construct workflows visually.

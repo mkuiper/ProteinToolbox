@@ -17,11 +17,20 @@ This document defines the "Skills" available to the AI agents. Each skill is a s
 ## Simulation Skills (`sim_skills`)
 
 ### `run_minimization(pdb_path, output_path)`
-*   **Description**: Performs energy minimization on a protein structure using OpenMM (Amber14 forcefield).
+*   **Description**: Performs energy minimization on a protein structure using OpenMM (Amber14 forcefield). Adds missing hydrogens automatically.
 *   **Inputs**: `pdb_path`, `output_path`.
 *   **Outputs**: Status message and saved PDB file.
 
 ## Design Skills (`design_skills`)
-*(Planned)*
-*   `generate_backbone(prompt)`: Uses RFdiffusion.
-*   `design_sequence(pdb_path)`: Uses ProteinMPNN.
+
+### `generate_backbone(prompt, output_dir)`
+*   **Description**: Wrapper for RFdiffusion. Generates a protein backbone based on a prompt (e.g., binder design).
+*   **Inputs**: `prompt`, `output_dir`.
+*   **Outputs**: Path to generated PDB or dry-run command.
+*   **Env**: Requires `RFDIFFUSION_PATH` set.
+
+### `design_sequence(pdb_path, output_dir)`
+*   **Description**: Wrapper for ProteinMPNN. Designs sequences for a given backbone.
+*   **Inputs**: `pdb_path`, `output_dir`.
+*   **Outputs**: Path to FASTA or dry-run command.
+*   **Env**: Requires `PROTEINMPNN_PATH` set.

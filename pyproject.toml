@@ -10,7 +10,10 @@ dependencies = [
     "crewai",
     "boltz",
     "pandas",
-    "requests"
+    "requests",
+    "streamlit",
+    "stmol",
+    "py3Dmol"
 ]
 
 [build-system]
