@@ -27,12 +27,14 @@ We reserve full MCP servers for:
 *   **Framework**: Streamlit.
 *   **Location**: `src/proteintoolbox/gui/app.py`.
 *   **Features**:
-    *   Direct Tool Access: Wrappers around skills for manual use.
-    *   Agent Workflow: Interface to the CrewAI backend.
-    *   Visualization: `stmol` + `py3Dmol` for embedding 3D structures.
+    *   **Project Management**: Create and switch between projects (persisted in `data/projects/`).
+    *   **Direct Tool Access**: Wrappers around skills for manual use within the context of the active project.
+    *   **Agent Workflow**: Interface to the CrewAI backend.
+    *   **Visualization**: **Mol* (streamlit-molstar)** for high-quality, interactive 3D structure viewing.
 
 ## Data Flow
 *   **Filesystem**: The current prototype relies on the shared filesystem (paths passed as strings).
+*   **Projects**: Each project has its own directory in `data/projects/{name}/` containing metadata and all generated files (PDBs, etc.).
 *   **Future**: We plan to implement a JSON-based "Manifest" or "ExperimentContext" object that tracks:
     *   `input_pdb`: Path to starting structure.
     *   `designed_backbones`: List of paths.

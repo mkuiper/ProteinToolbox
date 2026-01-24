@@ -13,7 +13,8 @@ dependencies = [
     "requests",
     "streamlit",
     "stmol",
-    "py3Dmol"
+    "py3Dmol",
+    "streamlit-molstar"
 ]
 
 [build-system]
