@@ -1,0 +1,84 @@
+{
+  "tools": [
+    {
+      "name": "BioPython",
+      "category": "Core",
+      "description": "A set of freely available tools for biological computation written in Python.",
+      "url": "https://biopython.org/",
+      "pip_package": "biopython",
+      "installed": false
+    },
+    {
+      "name": "OpenMM",
+      "category": "Simulation",
+      "description": "A high-performance toolkit for molecular simulation.",
+      "url": "https://openmm.org/",
+      "pip_package": "openmm",
+      "installed": false
+    },
+    {
+      "name": "PyMOL",
+      "category": "Visualization",
+      "description": "A user-sponsored molecular visualization system on an open-source foundation.",
+      "url": "https://pymol.org/",
+      "pip_package": "pymol-open-source",
+      "installed": false
+    },
+    {
+      "name": "ProteinMPNN",
+      "category": "Design",
+      "description": "Deep learning based protein sequence design.",
+      "url": "https://github.com/dauparas/ProteinMPNN",
+      "pip_package": null,
+      "installed": false
+    },
+    {
+      "name": "RFdiffusion",
+      "category": "Design",
+      "description": "Broadly applicable and accurate protein design by integrating structure prediction networks and diffusion generative models.",
+      "url": "https://github.com/RosettaCommons/RFdiffusion",
+      "pip_package": null,
+      "installed": false
+    },
+    {
+      "name": "ColabDesign",
+      "category": "Design",
+      "description": "Making protein design accessible to all via Google Colab.",
+      "url": "https://github.com/sokrypton/ColabDesign",
+      "pip_package": "colabdesign",
+      "installed": false
+    },
+    {
+      "name": "BioPhi",
+      "category": "Antibody",
+      "description": "Platform for antibody design, humanization, and humanness evaluation.",
+      "url": "https://github.com/Merck/BioPhi",
+      "pip_package": "biophi",
+      "installed": false
+    },
+    {
+      "name": "AbX",
+      "category": "Antibody",
+      "description": "Antibody design using score-based diffusion model.",
+      "url": "https://github.com/SysBioChalmers/AbX",
+      "pip_package": null,
+      "installed": false
+    },
+    {
+      "name": "Enzyme Design Kit",
+      "category": "Enzyme",
+      "description": "Collection of Python tools for enzyme design.",
+      "url": "https://github.com/Edinburgh-Genome-Foundry/EnzymeDesignKit",
+      "pip_package": null,
+      "installed": false
+    },
+    {
+      "name": "Boltz-2",
+      "category": "Simulation",
+      "description": "Open-source biomolecular interaction modeling (Version 2).",
+      "url": "https://github.com/jwohlwend/boltz",
+      "pip_package": "boltz",
+      "installed": false
+    }
+  ]
+}
