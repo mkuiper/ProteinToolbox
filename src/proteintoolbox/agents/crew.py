@@ -1,5 +1,5 @@
 from crewai import Agent, Task, Crew, Process
-from crewai.tools import Tool as CrewTool
+from crewai.tools import BaseTool as CrewTool
 from proteintoolbox.registry import ToolRegistry
 from proteintoolbox.resources import ResourceManager
 from proteintoolbox.skills import bio_skills, sim_skills
