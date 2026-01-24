@@ -2,6 +2,7 @@ from crewai import Agent, Task, Crew, Process
 from crewai.tools import Tool as CrewTool
 from proteintoolbox.registry import ToolRegistry
 from proteintoolbox.resources import ResourceManager
+from proteintoolbox.skills import bio_skills, sim_skills
 import os
 
 # Initialize Registry and Resources
@@ -39,6 +40,25 @@ class ResourceCheckTool(CrewTool):
         status = resources.get_status()
         return f"System Resources: GPU Available: {status['gpu_available']}, Name: {status['gpu_name']}"
 
+class ExecuteSkillTool(CrewTool):
+    name: str = "Execute Skill"
+    description: str = "Execute a specific python skill. Format: 'skill_name|arg1|arg2'. Available skills: fetch_pdb_structure, run_minimization."
+
+    def _run(self, command: str) -> str:
+        try:
+            parts = command.split("|")
+            skill_name = parts[0].strip()
+            args = [p.strip() for p in parts[1:]]
+
+            if skill_name == "fetch_pdb_structure":
+                return bio_skills.fetch_pdb_structure(args[0], args[1] if len(args) > 1 else "data/pdb")
+            elif skill_name == "run_minimization":
+                return sim_skills.run_minimization(args[0], args[1] if len(args) > 1 else "minimized.pdb")
+            else:
+                return f"Error: Unknown skill '{skill_name}'"
+        except Exception as e:
+            return f"Error executing skill: {str(e)}"
+
 # --- Agents ---
 
 librarian = Agent(
@@ -60,6 +80,7 @@ technician = Agent(
     role='Computational Lab Technician',
     goal='Execute the computational workflows and run simulations.',
     backstory='You are a skilled bioinformatician who knows how to run Python scripts and CLI tools for protein design.',
+    tools=[ExecuteSkillTool()],
     verbose=True
 )
 
@@ -77,16 +98,16 @@ def run_design_task(user_request: str):
 
     # Task 2: Plan the workflow
     task_plan = Task(
-        description=f"Based on the recommended tools, create a step-by-step workflow to achieve the goal: '{user_request}'. Explain how data flows from one tool to the next (e.g., Sequence -> Structure -> Docking).",
+        description=f"Based on the recommended tools, create a step-by-step workflow to achieve the goal: '{user_request}'. Identify which specific 'skills' (like fetch_pdb_structure, run_minimization) are needed.",
         agent=architect,
-        expected_output="A detailed, numbered experiment protocol."
+        expected_output="A detailed, numbered experiment protocol with specific skill names mentioned."
     )
 
-    # Task 3: Execution Plan (Simulated)
+    # Task 3: Execution Plan (Simulated/Real)
     task_execute = Task(
-        description="Review the protocol. For this prototype, generate the specific Python commands or CLI instructions that the user would need to run to execute this plan. Do not actually run them yet, but provide the 'code' to do so.",
+        description="Review the protocol. Use the 'Execute Skill' tool to actually run the steps if possible (e.g., if the plan involves fetching a PDB). If a step requires a tool not yet implemented as a skill, describe the manual command.",
         agent=technician,
-        expected_output="A set of Python snippets or shell commands representing the execution of the workflow."
+        expected_output="Result of the executed skills or a script for manual execution."
     )
 
     crew = Crew(
