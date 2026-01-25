@@ -43,3 +43,10 @@
 - **Issue**: Missing `freesasa` module caused GUI crash.
 - **Fix**: Installed `freesasa` in `.venv` and updated `pyproject.toml`.
 - **Status**: GUI verified healthy.
+
+## Iteration 7: Advanced LLM Configuration & Model Expansion
+- **Date**: 2026-01-25
+- **Feature**: Expanded LLM support to include latest models from OpenAI (o1, o3-mini), Anthropic (Claude 3.5), Gemini (2.0 Flash), and Ollama (Llama 3.3, DeepSeek R1).
+- **GUI**: Added dynamic model selection UI with "Other..." option for custom models.
+- **Code**: Refactored `crew.py` to clean up duplication and improve `LLM` initialization logic for multi-provider support.
+- **Status**: GUI verified healthy.
