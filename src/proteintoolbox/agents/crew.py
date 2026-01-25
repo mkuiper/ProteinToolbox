@@ -63,7 +63,7 @@ from crewai import Agent, Task, Crew, Process, LLM
 from crewai.tools import BaseTool as CrewTool
 from proteintoolbox.registry import ToolRegistry
 from proteintoolbox.resources import ResourceManager
-from proteintoolbox.skills import bio_skills, sim_skills, docking_skills, analysis_skills, design_skills, search_skills
+from proteintoolbox.skills import bio_skills, sim_skills, docking_skills, analysis_skills, design_skills, search_skills, logic_skills
 import os
 
 # Initialize Registry and Resources
@@ -100,7 +100,7 @@ class ResourceCheckTool(CrewTool):
 
 class ExecuteSkillTool(CrewTool):
     name: str = "Execute Skill"
-    description: str = "Execute a specific python skill. Format: 'skill_name|arg1|arg2'. Available skills: fetch_pdb_structure, run_minimization, generate_backbone, design_sequence, prepare_ligand, run_docking, analyze_sequence, search_pubmed."
+    description: str = "Execute a specific python skill. Format: 'skill_name|arg1|arg2'. Available skills: fetch_pdb_structure, run_minimization, generate_backbone, design_sequence, prepare_ligand, run_docking, analyze_sequence, search_pubmed, check_design_constraints, infer_functionality_issues."
 
     def _run(self, command: str) -> str:
         try:
@@ -138,6 +138,19 @@ class ExecuteSkillTool(CrewTool):
             # Search Skills
             elif skill_name == "search_pubmed":
                 return search_skills.search_pubmed(args[0], int(args[1]) if len(args) > 1 else 5)
+            
+            # Logic Skills
+            elif skill_name == "check_design_constraints":
+                # Expecting: check_design_constraints|sequence|{"max_molecular_weight": 50000}
+                import json
+                try:
+                    constraints = json.loads(args[1]) if len(args) > 1 else {}
+                except:
+                    constraints = {}
+                return str(logic_skills.check_design_constraints(args[0], constraints))
+
+            elif skill_name == "infer_functionality_issues":
+                return str(logic_skills.infer_functionality_issues(args[0]))
             
             else:
                 return f"Error: Unknown skill '{skill_name}'"
@@ -207,7 +220,17 @@ def run_design_task(user_request: str, llm_config: dict = None):
         verbose=True
     )
 
-    # 4. Reporting
+    # 4. Critique & Logic
+    critic = Agent(
+        role='Design Critic',
+        goal='Validate protein designs against logical constraints and heuristics.',
+        backstory='Quality Assurance specialist who ensures designs are physically viable before expensive simulations.',
+        tools=[ExecuteSkillTool()],
+        llm=llm,
+        verbose=True
+    )
+
+    # 5. Reporting
     report_writer = Agent(
         role='Report Writer',
         goal='Synthesize results into a clear scientific report.',
@@ -236,6 +259,12 @@ def run_design_task(user_request: str, llm_config: dict = None):
         expected_output="Designed sequences or status."
     )
 
+    task_critique = Task(
+        description="Validate the designed sequences using 'check_design_constraints' and 'infer_functionality_issues'. Report any violations.",
+        agent=critic,
+        expected_output="Validation report with Pass/Fail status."
+    )
+
     task_execute_struct = Task(
         description="Execute structure analysis/simulation steps (using 'Execute Skill' for run_minimization, analyze_sequence, etc.).",
         agent=structure_analyst,
@@ -249,8 +278,8 @@ def run_design_task(user_request: str, llm_config: dict = None):
     )
 
     crew = Crew(
-        agents=[librarian, architect, sequence_engineer, structure_analyst, report_writer],
-        tasks=[task_research, task_plan, task_execute_seq, task_execute_struct, task_report],
+        agents=[librarian, architect, sequence_engineer, critic, structure_analyst, report_writer],
+        tasks=[task_research, task_plan, task_execute_seq, task_critique, task_execute_struct, task_report],
         verbose=True,
         process=Process.sequential
     )

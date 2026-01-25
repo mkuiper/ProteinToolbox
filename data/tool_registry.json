@@ -33,6 +33,14 @@
       "installed": true
     },
     {
+      "name": "FreeSASA",
+      "category": "Analysis",
+      "description": "Library for calculating solvent accessible surface areas.",
+      "url": "https://freesasa.github.io/",
+      "pip_package": "freesasa",
+      "installed": true
+    },
+    {
       "name": "PyMOL",
       "category": "Visualization",
       "description": "A user-sponsored molecular visualization system on an open-source foundation.",
@@ -94,6 +102,14 @@
       "description": "Open-source biomolecular interaction modeling (Version 2).",
       "url": "https://github.com/jwohlwend/boltz",
       "pip_package": "boltz",
+      "installed": true
+    },
+    {
+      "name": "ProteinDocs",
+      "category": "Documentation",
+      "description": "Automated project report and documentation generator.",
+      "url": "internal",
+      "pip_package": null,
       "installed": true
     }
   ]

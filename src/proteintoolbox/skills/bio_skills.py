@@ -1,5 +1,5 @@
 import os
-from Bio.PDB import PDBList, PDBParser
+from Bio.PDB import PDBList, PDBParser, PPBuilder
 from typing import Optional
 
 def fetch_pdb_structure(pdb_id: str, output_dir: str = "data/pdb") -> str:
@@ -28,17 +28,17 @@ def get_sequence_from_pdb(pdb_path: str) -> str:
     Returns:
         str: The amino acid sequence (1-letter code).
     """
+    # Use PDBParser to get structure
     parser = PDBParser(QUIET=True)
     structure = parser.get_structure("struct", pdb_path)
+    
+    # Use PPBuilder to extract polypeptides
+    ppb = PPBuilder()
+    pps = ppb.build_peptides(structure)
+    
+    # Concatenate all polypeptide sequences (usually just one for a single chain)
     sequence = ""
-    # Simple extraction (first model, first chain) - scalable for more complex needs
-    for model in structure:
-        for chain in model:
-            for residue in chain:
-                if residue.get_id()[0] == ' ': # Standard residue
-                    # Convert 3-letter to 1-letter (simplified logic)
-                    # For a robust skill, we'd use Bio.SeqUtils
-                    resname = residue.get_resname()
-                    # Placeholder for mapping logic or use BioPython's Polypeptide builder
-                    pass 
-    return "MKT..." # Dummy return for prototype, normally implemented with SeqUtils
+    for pp in pps:
+        sequence += str(pp.get_sequence())
+        
+    return sequence

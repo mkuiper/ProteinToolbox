@@ -17,7 +17,8 @@ dependencies = [
     "streamlit-molstar",
     "vina",
     "protpy",
-    "meeko"
+    "meeko",
+    "freesasa"
 ]
 
 [build-system]

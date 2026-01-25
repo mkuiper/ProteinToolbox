@@ -1,9 +1,9 @@
-import protpy
 from Bio import SeqIO
+from Bio.SeqUtils.ProtParam import ProteinAnalysis
 
 def analyze_sequence(sequence: str) -> dict:
     """
-    Calculates physicochemical properties of a protein sequence.
+    Calculates physicochemical properties of a protein sequence using BioPython.
     
     Args:
         sequence: Amino acid string.
@@ -11,12 +11,6 @@ def analyze_sequence(sequence: str) -> dict:
     Returns:
         Dictionary of properties (MW, Isoelectric Point, Hydrophobicity, etc.)
     """
-    # protpy requires imports for specific descriptors
-    # But for basic props, BioPython's ProteinAnalysis is often simpler.
-    # Let's use BioPython for basics and protpy for advanced descriptors if needed.
-    
-    from Bio.SeqUtils.ProtParam import ProteinAnalysis
-    
     analysed_seq = ProteinAnalysis(sequence)
     
     props = {
@@ -24,12 +18,16 @@ def analyze_sequence(sequence: str) -> dict:
         "isoelectric_point": analysed_seq.isoelectric_point(),
         "gravy": analysed_seq.gravy(),
         "aromaticity": analysed_seq.aromaticity(),
-        "instability_index": analysed_seq.instability_index()
+        "instability_index": analysed_seq.instability_index(),
+        "secondary_structure_fraction": analysed_seq.secondary_structure_fraction(), # (Helix, Turn, Sheet)
+        "extinction_coefficient": analysed_seq.molar_extinction_coefficient() # (reduced, oxidized)
     }
     
     return props
 
-def get_amino_acid_composition(sequence: str) -> dict:
-    import protpy as pe
-    # using protpy to get composition
-    return pe.amino_acid_composition(sequence)
+def get_amino_acid_percentages(sequence: str) -> dict:
+    """
+    Calculates the percentage of each amino acid in the sequence.
+    """
+    analysed_seq = ProteinAnalysis(sequence)
+    return analysed_seq.get_amino_acids_percent()

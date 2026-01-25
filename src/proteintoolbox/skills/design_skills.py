@@ -72,6 +72,61 @@ class DesignSkills:
         except subprocess.CalledProcessError as e:
             return f"Error running ProteinMPNN: {e}"
 
+    def generate_alanine_scan(self, sequence: str) -> dict[str, str]:
+        """
+        Generates an Alanine Scanning library.
+        
+        Args:
+            sequence (str): Original amino acid sequence.
+            
+        Returns:
+            dict: Mapping of description (e.g., "M1A") to sequence.
+        """
+        variants = {}
+        for i, aa in enumerate(sequence):
+            # Skip if already Alanine
+            if aa == 'A':
+                continue
+            
+            # Create mutation
+            mut_seq = list(sequence)
+            mut_seq[i] = 'A'
+            
+            variant_name = f"{aa}{i+1}A"
+            variants[variant_name] = "".join(mut_seq)
+            
+        return variants
+
+    def generate_saturation_library(self, sequence: str, position: int) -> dict[str, str]:
+        """
+        Generates all 19 single mutations at a specific position (1-based index).
+        
+        Args:
+            sequence (str): Original sequence.
+            position (int): 1-based position to mutate.
+            
+        Returns:
+            dict: Mapping of description to sequence.
+        """
+        if position < 1 or position > len(sequence):
+            raise ValueError(f"Position {position} is out of range.")
+            
+        original_aa = sequence[position-1]
+        amino_acids = "ACDEFGHIKLMNPQRSTVWY"
+        variants = {}
+        
+        for aa in amino_acids:
+            if aa == original_aa:
+                continue
+                
+            mut_seq = list(sequence)
+            mut_seq[position-1] = aa
+            
+            variant_name = f"{original_aa}{position}{aa}"
+            variants[variant_name] = "".join(mut_seq)
+            
+        return variants
+
 # Standalone functions for export
 _skills = DesignSkills()
 
@@ -80,3 +135,9 @@ def generate_backbone(prompt: str, output_dir: str = "output/rfdiffusion") -> st
 
 def design_sequence(pdb_path: str, output_dir: str = "output/mpnn") -> str:
     return _skills.design_sequence(pdb_path, output_dir)
+
+def generate_alanine_scan(sequence: str) -> dict[str, str]:
+    return _skills.generate_alanine_scan(sequence)
+
+def generate_saturation_library(sequence: str, position: int) -> dict[str, str]:
+    return _skills.generate_saturation_library(sequence, position)
