@@ -21,7 +21,9 @@ dependencies = [
     "freesasa",
     "hypothesis",
     "pytest",
-    "plotly"
+    "plotly",
+    "transformers",
+    "torch"
 ]
 
 [build-system]

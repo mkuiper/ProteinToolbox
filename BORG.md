@@ -94,3 +94,13 @@
 **Verification**:
 - Verified GUI functionality via `curl`.
 - Confirmed Plotly installation.
+
+## Iteration 11
+- **Focus**: New Skills and Integrations (SOTA protein design models)
+- **Research**: Identified ESM (Evolutionary Scale Modeling) by Meta as a high-impact, installable SOTA capability for protein representation learning.
+- **Implementation**:
+    - Added `transformers`, `torch`, and `accelerate` to dependencies.
+    - Implemented `ESMSkills` in `src/proteintoolbox/skills/esm_skills.py` using the lightweight `esm2_t6_8M_UR50D` model.
+    - Added `get_embedding` capability to generate numerical representations of protein sequences.
+    - Added unit test `tests/test_esm_skills.py`.
+- **Status**: Integrated and Verified.
