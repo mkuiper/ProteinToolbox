@@ -72,3 +72,11 @@
 - **New Feature**: Added `clean_and_validate_sequence` to `bio_skills.py` for robust sequence input handling.
 - **Tests**: Added `tests/test_properties.py` covering sequence validation and logic heuristics with fuzzing strategies.
 - **Dependencies**: Added `hypothesis` and `pytest` to project dependencies.
+
+## Iteration 9: Workflow recipes and examples
+- **Focus**: Predefined design paths for common tasks.
+- **New Module**: `src/proteintoolbox/workflows.py` introducing `Workflow` and `AntibodyDesignWorkflow` / `EnzymeRefinementWorkflow` classes.
+- **Features**: 
+    - Standardized "Recipes" that chain skills (Validation -> Analysis -> Minimization).
+    - Robust handling of missing dependencies (e.g., OpenMM) with graceful degradation (skipping steps).
+- **Tests**: Added `tests/test_workflows.py`.

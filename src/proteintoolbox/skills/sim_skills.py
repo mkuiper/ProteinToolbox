@@ -14,7 +14,7 @@ def run_minimization(pdb_path: str, output_path: str = "minimized.pdb"):
         output_path (str): Path to save minimized structure.
     """
     if not mm:
-        return "Error: OpenMM not installed."
+        raise ImportError("OpenMM not installed. Cannot run minimization.")
 
     pdb = app.PDBFile(pdb_path)
     forcefield = app.ForceField('amber14-all.xml', 'amber14/tip3pfb.xml')
