@@ -42,3 +42,38 @@ def get_sequence_from_pdb(pdb_path: str) -> str:
         sequence += str(pp.get_sequence())
         
     return sequence
+
+def clean_and_validate_sequence(raw_sequence: str, valid_chars: str = "ACDEFGHIKLMNPQRSTVWY") -> str:
+    """
+    Cleans a protein sequence string and validates it contains only standard amino acids.
+    
+    Args:
+        raw_sequence (str): Input sequence (can contain whitespace, lower case).
+        valid_chars (str): String of allowed characters. Default is 20 standard amino acids.
+        
+    Returns:
+        str: Cleaned, uppercase sequence.
+        
+    Raises:
+        ValueError: If invalid characters are found or sequence is empty.
+    """
+    if not raw_sequence:
+        raise ValueError("Sequence is empty.")
+        
+    # Remove whitespace and newline characters
+    clean_seq = "".join(raw_sequence.split()).upper()
+    
+    if not clean_seq:
+        raise ValueError("Sequence is empty after cleaning.")
+
+    # Check for invalid characters efficiently
+    valid_set = set(valid_chars)
+    invalid_chars = set(clean_seq) - valid_set
+    
+    if invalid_chars:
+        # Sort for deterministic error messages
+        bad_chars = "".join(sorted(list(invalid_chars)))
+        raise ValueError(f"Invalid characters found in sequence: {bad_chars}")
+        
+    return clean_seq
+    

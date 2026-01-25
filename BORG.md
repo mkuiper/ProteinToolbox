@@ -66,3 +66,9 @@
   - Added `validate_workflow_logic` to `logic_skills.py` to detect missing dependencies.
   - Added `propose_refinements` to `logic_skills.py` to suggest best practices.
   - Updated `Architect` and `Critic` agents to utilize these new logic tools.
+
+## Iteration 8 (Testing Focus): Testing, Validation, and Robustness
+- **Testing & Validation**: Implemented property-based testing using `hypothesis` to improve system robustness.
+- **New Feature**: Added `clean_and_validate_sequence` to `bio_skills.py` for robust sequence input handling.
+- **Tests**: Added `tests/test_properties.py` covering sequence validation and logic heuristics with fuzzing strategies.
+- **Dependencies**: Added `hypothesis` and `pytest` to project dependencies.

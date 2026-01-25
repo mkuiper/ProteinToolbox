@@ -18,7 +18,9 @@ dependencies = [
     "vina",
     "protpy",
     "meeko",
-    "freesasa"
+    "freesasa",
+    "hypothesis",
+    "pytest"
 ]
 
 [build-system]
