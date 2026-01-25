@@ -37,9 +37,31 @@ class ResourceCheckTool(CrewTool):
         status = resources.get_status()
         return f"System Resources: GPU Available: {status['gpu_available']}, Name: {status['gpu_name']}"
 
+class LogicTool(CrewTool):
+    name: str = "Workflow Logic Analyzer"
+    description: str = "Analyzes a proposed plan (list of steps) for logical consistency and suggests refinements. Input: A semicolon-separated list of steps."
+
+    def _run(self, plan_str: str) -> str:
+        steps = [s.strip() for s in plan_str.split(';')]
+        validation = logic_skills.validate_workflow_logic(steps)
+        refinements = logic_skills.propose_refinements(steps)
+        
+        output = f"Logic Analysis for Plan ({len(steps)} steps):\n"
+        output += f"Valid: {validation['valid']}\n"
+        if not validation['valid']:
+            output += f"Errors: {validation['errors']}\n"
+        
+        if refinements:
+            output += f"Suggestions: {refinements}\n"
+        
+        if validation['valid'] and not refinements:
+            output += "Plan looks logically sound and follows best practices."
+            
+        return output
+
 class ExecuteSkillTool(CrewTool):
     name: str = "Execute Skill"
-    description: str = "Execute a specific python skill. Format: 'skill_name|arg1|arg2'. Available skills: fetch_pdb_structure, run_minimization, generate_backbone, design_sequence, prepare_ligand, run_docking, analyze_sequence, search_pubmed, check_design_constraints, infer_functionality_issues."
+    description: str = "Execute a specific python skill. Format: 'skill_name|arg1|arg2'. Available skills: fetch_pdb_structure, run_minimization, generate_backbone, design_sequence, prepare_ligand, run_docking, analyze_sequence, search_pubmed, check_design_constraints, infer_functionality_issues, validate_workflow_logic, propose_refinements."
 
     def _run(self, command: str) -> str:
         try:
@@ -88,6 +110,15 @@ class ExecuteSkillTool(CrewTool):
 
             elif skill_name == "infer_functionality_issues":
                 return str(logic_skills.infer_functionality_issues(args[0]))
+
+            elif skill_name == "validate_workflow_logic":
+                # Expects a single string argument with steps separated by semicolons
+                steps = [s.strip() for s in args[0].split(';')]
+                return str(logic_skills.validate_workflow_logic(steps))
+                
+            elif skill_name == "propose_refinements":
+                steps = [s.strip() for s in args[0].split(';')]
+                return str(logic_skills.propose_refinements(steps))
             
             else:
                 return f"Error: Unknown skill '{skill_name}'"
@@ -156,7 +187,8 @@ def run_design_task(user_request: str, llm_config: dict = None):
     architect = Agent(
         role='Protein Design Architect',
         goal='Design the overall experimental workflow.',
-        backstory='Senior scientist who orchestrates the specialist agents.',
+        backstory='Senior scientist who orchestrates the specialist agents. You utilize Logic Tools to verify plans.',
+        tools=[LogicTool()],
         llm=llm,
         verbose=True
     )
@@ -166,7 +198,7 @@ def run_design_task(user_request: str, llm_config: dict = None):
         role='Design Critic',
         goal='Validate protein designs against logical constraints and heuristics.',
         backstory='Quality Assurance specialist who ensures designs are physically viable before expensive simulations.',
-        tools=[ExecuteSkillTool()],
+        tools=[ExecuteSkillTool(), LogicTool()],
         llm=llm,
         verbose=True
     )

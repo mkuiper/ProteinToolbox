@@ -73,3 +73,81 @@ def infer_functionality_issues(sequence: str) -> list:
         issues.append(f"Composition Warning: High Proline/Glycine content ({pro_gly_percent:.1%}). Suggests potential intrinsic disorder.")
 
     return issues
+
+def validate_workflow_logic(steps: list[str]) -> dict:
+    """
+    Analyzes a list of workflow steps for logical dependency violations.
+    Assumes standard keywords: 'search', 'design', 'fold', 'structure', 'dock', 'minimize', 'validate'.
+    """
+    errors = []
+    warnings = []
+    
+    # Normalize steps for analysis
+    normalized_steps = [s.lower() for s in steps]
+    
+    # Define generic dependencies
+    # key: must appear AFTER value
+    dependencies = {
+        'dock': ['fold', 'structure', 'pdb'],
+        'minimize': ['fold', 'structure', 'design', 'mutation'],
+        'validate': ['design', 'fold', 'dock'],
+        'design': ['search', 'target'],
+    }
+    
+    found_concepts = set()
+    
+    for i, step in enumerate(normalized_steps):
+        # Identify concepts in this step
+        current_concepts = []
+        for key in ['dock', 'fold', 'structure', 'design', 'mutation', 'search', 'target', 'minimize', 'validate', 'pdb']:
+            if key in step:
+                current_concepts.append(key)
+        
+        # Check dependencies
+        for concept in current_concepts:
+            if concept in dependencies:
+                required_precursors = dependencies[concept]
+                # Check if ANY of the precursors have been seen yet
+                has_precursor = any(p in found_concepts for p in required_precursors)
+                
+                # Special case: 'structure' might be an input, so we might not need to fold if we fetched a PDB.
+                # But generally, we check if we are doing an action that requires a structure.
+                
+                # If it's the first step, it can't have precursors (unless provided externally, which we can't check easily here)
+                if not has_precursor and i > 0:
+                     # Check if maybe it's implicitly available?
+                     pass 
+                
+                # Simple Logic: If I want to Dock, I must have a Structure.
+                if concept == 'dock' and not any(x in found_concepts for x in ['fold', 'structure', 'pdb']):
+                    errors.append(f"Step {i+1} '{step}' attempts to Dock without a prior Structure/Fold/PDB step.")
+
+        # Update found concepts
+        found_concepts.update(current_concepts)
+        
+    return {
+        "valid": len(errors) == 0,
+        "errors": errors,
+        "warnings": warnings
+    }
+
+def propose_refinements(steps: list[str]) -> list[str]:
+    """
+    Suggests improvements to a workflow plan based on best practices.
+    """
+    suggestions = []
+    text = " ".join(steps).lower()
+    
+    # 1. Post-Design Minimization
+    if ('design' in text or 'mutation' in text) and 'minimize' not in text:
+        suggestions.append("Consider adding a 'minimization' step after sequence design to relax the structure.")
+        
+    # 2. Validation
+    if ('design' in text or 'dock' in text) and 'validate' not in text:
+        suggestions.append("The workflow lacks an explicit 'validation' or 'analysis' step to check quality metrics.")
+        
+    # 3. Aggregation Check for heavy design
+    if 'design' in text and 'aggregation' not in text:
+        suggestions.append("For protein design, it is recommended to check for 'aggregation' prone regions.")
+
+    return suggestions

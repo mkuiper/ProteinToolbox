@@ -57,3 +57,12 @@
 - **Feature**: Added **DeepSeek** as a first-class provider in GUI and Agent logic.
 - **GUI**: Modernized model dropdowns across all providers.
 - **Status**: Ready for high-reasoning tasks.
+
+## Iteration 7 (Part 2): Agent Logic and Reasoning
+- **Date**: January 25, 2026
+- **Focus**: Enhanced agent capability for self-correction and workflow validation.
+- **Features**:
+  - Implemented `LogicTool` in `crew.py` to allow agents to analyze their own plans.
+  - Added `validate_workflow_logic` to `logic_skills.py` to detect missing dependencies.
+  - Added `propose_refinements` to `logic_skills.py` to suggest best practices.
+  - Updated `Architect` and `Critic` agents to utilize these new logic tools.
