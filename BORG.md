@@ -80,3 +80,17 @@
     - Standardized "Recipes" that chain skills (Validation -> Analysis -> Minimization).
     - Robust handling of missing dependencies (e.g., OpenMM) with graceful degradation (skipping steps).
 - **Tests**: Added `tests/test_workflows.py`.
+
+## Iteration 10
+**Focus**: GUI Experience and Visualization (e.g. Plotly charts, Mol* enhancements)
+
+**Changes**:
+- Added `plotly` dependency for interactive charting.
+- Integrated Plotly charts into the Streamlit GUI:
+    - **Structure Analysis**: Added interactive bar chart for Residue SASA.
+    - **Mutagenesis**: Added scatter plot for variant landscape analysis (ΔpI vs ΔInstability).
+- Enhanced user experience by providing rich tooltips and interactive zooming for data exploration.
+
+**Verification**:
+- Verified GUI functionality via `curl`.
+- Confirmed Plotly installation.

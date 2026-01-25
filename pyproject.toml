@@ -20,7 +20,8 @@ dependencies = [
     "meeko",
     "freesasa",
     "hypothesis",
-    "pytest"
+    "pytest",
+    "plotly"
 ]
 
 [build-system]

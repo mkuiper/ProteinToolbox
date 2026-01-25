@@ -2,6 +2,7 @@ import streamlit as st
 import os
 import sys
 import pandas as pd
+import plotly.express as px
 from streamlit_molstar import st_molstar, st_molstar_rcsb
 
 # Add src to path
@@ -248,7 +249,17 @@ elif mode == "Tools":
                             pass # Fallback to default order
                         
                         df = pd.DataFrame(data_items, columns=["Residue", "SASA"])
-                        st.bar_chart(df, x="Residue", y="SASA")
+                        
+                        # Plotly Chart
+                        fig = px.bar(
+                            df, 
+                            x="Residue", 
+                            y="SASA", 
+                            title="Residue Solvent Accessible Surface Area",
+                            labels={"SASA": "SASA (Å²)"},
+                            hover_data=["Residue", "SASA"]
+                        )
+                        st.plotly_chart(fig, use_container_width=True)
                         
         else:
             st.info("Select a project to run analysis.")
@@ -298,6 +309,26 @@ elif mode == "Tools":
                     results.append(row)
                 
                 df_res = pd.DataFrame(results)
+                
+                # Plotly Scatter Plot for Variants
+                if not df_res.empty:
+                    st.markdown("##### Variant Landscape")
+                    fig_var = px.scatter(
+                        df_res,
+                        x="d_pI",
+                        y="d_Instability",
+                        color="d_MW",
+                        hover_name="Variant",
+                        hover_data=["Sequence"],
+                        title="Variant Properties (Delta from Wild Type)",
+                        labels={
+                            "d_pI": "Δ Isoelectric Point",
+                            "d_Instability": "Δ Instability Index",
+                            "d_MW": "Δ Molecular Weight"
+                        }
+                    )
+                    st.plotly_chart(fig_var, use_container_width=True)
+
                 st.dataframe(df_res.style.background_gradient(subset=["d_pI", "d_Instability"], cmap="RdBu"))
 
 
