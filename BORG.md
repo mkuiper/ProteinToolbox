@@ -50,3 +50,10 @@
 - **GUI**: Added dynamic model selection UI with "Other..." option for custom models.
 - **Code**: Refactored `crew.py` to clean up duplication and improve `LLM` initialization logic for multi-provider support.
 - **Status**: GUI verified healthy.
+
+## Iteration 8: 2026 SOTA Model Update
+- **Date**: 2026-01-25
+- **Research**: Updated model lists to include January 2026 releases: GPT-5.2, Claude 4.5, Gemini 3, and DeepSeek V3.2.
+- **Feature**: Added **DeepSeek** as a first-class provider in GUI and Agent logic.
+- **GUI**: Modernized model dropdowns across all providers.
+- **Status**: Ready for high-reasoning tasks.

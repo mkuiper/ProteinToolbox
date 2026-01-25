@@ -115,6 +115,8 @@ def run_design_task(user_request: str, llm_config: dict = None):
              # Ensure model name starts with gemini/ if not already
              full_model = model if model.startswith("gemini/") else f"gemini/{model}"
              llm = LLM(model=full_model, api_key=api_key)
+        elif provider == 'deepseek':
+             llm = LLM(model=f"openai/{model}", api_key=api_key, base_url=base_url or "https://api.deepseek.com")
         elif provider == 'ollama':
              full_model = model if model.startswith("ollama/") else f"ollama/{model}"
              llm = LLM(model=full_model, base_url=base_url)

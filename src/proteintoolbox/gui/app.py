@@ -57,13 +57,14 @@ with st.sidebar:
     
     # LLM Settings
     with st.expander("LLM Settings"):
-        llm_provider = st.selectbox("Provider", ["openai", "anthropic", "gemini", "ollama"])
+        llm_provider = st.selectbox("Provider", ["openai", "anthropic", "gemini", "deepseek", "ollama"])
         
         provider_models = {
-            "openai": ["gpt-4o", "gpt-4o-mini", "o1", "o1-mini", "o3-mini", "gpt-4-turbo"],
-            "anthropic": ["claude-3-5-sonnet-latest", "claude-3-5-haiku-latest", "claude-3-opus-latest"],
-            "gemini": ["gemini-2.0-flash-exp", "gemini-1.5-pro-latest", "gemini-1.5-flash-latest"],
-            "ollama": ["llama3.3", "phi4", "mistral-small", "deepseek-r1", "llama3.1:8b"]
+            "openai": ["gpt-5.2", "gpt-5", "gpt-4o", "o3-mini", "o1"],
+            "anthropic": ["claude-4.5-opus", "claude-4.5-sonnet", "claude-3-5-sonnet-latest"],
+            "gemini": ["gemini-3-pro", "gemini-3-flash", "gemini-3-deep-think", "gemini-2.0-flash-exp"],
+            "deepseek": ["deepseek-v3.2", "deepseek-v3", "deepseek-reasoner", "deepseek-chat"],
+            "ollama": ["deepseek-v3.2", "llama3.3", "phi4", "mistral-small", "exaone-deep"]
         }
         
         selected_model = st.selectbox("Model", provider_models[llm_provider] + ["Other..."])
@@ -73,8 +74,8 @@ with st.sidebar:
         else:
             llm_model = selected_model
             
-        llm_api_key = st.text_input("API Key", type="password", help="Leave empty if using env vars")
-        llm_base_url = st.text_input("Base URL", value="http://localhost:11434" if llm_provider == "ollama" else "", help="Used for Ollama or custom endpoints")
+        llm_api_key = st.text_input("API Key", type="password", help="Leave empty if using env vars or Ollama")
+        llm_base_url = st.text_input("Base URL", value="http://localhost:11434" if llm_provider == "ollama" else "https://api.deepseek.com" if llm_provider == "deepseek" else "", help="Used for Ollama, DeepSeek, or custom endpoints")
 
     st.divider()
     st.header("Navigation")
