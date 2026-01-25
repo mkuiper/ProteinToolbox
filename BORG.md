@@ -1,5 +1,7 @@
 # BORG: Biologic Optimization & Recursive Growth Log
 
+# CURRENT_ITERATION=13
+
 ## Iteration 0: Initialization
 - **Date**: 2026-01-24
 - **Status**: Baseline established.
@@ -116,3 +118,12 @@
     - `logic_skills.py`: Added `decompose_request` and `get_reasoning_template`.
 - **Testing**: Added unit tests for new logic skills in `tests/test_logic_skills.py`.
 - **Status**: Implemented and verified via unit tests.
+
+## Iteration 7 (Graph Reasoning)
+- **Date**: January 25, 2026
+- **Focus**: Agent Logic and Reasoning (Graph-based Pathfinding)
+- **Changes**:
+    - **New Skill Module**: `graph_reasoning.py` implementing `DomainKnowledgeGraph` to model scientific dependencies (Ontology: Sequence -> Structure -> Docking).
+    - **New Tool**: `PathfinderTool` added to `crew.py`, allowing agents to query the knowledge graph for valid scientific workflows.
+    - **Agent Upgrades**: `Methodologist`, `Architect`, and `Critic` now use `PathfinderTool` to ground their plans in a defined scientific ontology.
+    - **Registry**: Registered `graph_reasoning` in `skills/__init__.py`.

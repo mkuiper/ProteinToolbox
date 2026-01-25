@@ -26,6 +26,7 @@ dependencies = [
     "torch",
     "tenacity",
     "pydantic",
+    "networkx",
 ]
 
 [build-system]
