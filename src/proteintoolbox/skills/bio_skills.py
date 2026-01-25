@@ -1,7 +1,10 @@
 import os
 from Bio.PDB import PDBList, PDBParser, PPBuilder
 from typing import Optional
+from proteintoolbox.utils.robustness import network_retry
+from proteintoolbox.models import PDBDownloadRequest, ProteinSequenceRequest
 
+@network_retry
 def fetch_pdb_structure(pdb_id: str, output_dir: str = "data/pdb") -> str:
     """
     Downloads a PDB structure file.
@@ -13,9 +16,12 @@ def fetch_pdb_structure(pdb_id: str, output_dir: str = "data/pdb") -> str:
     Returns:
         str: Path to the downloaded file.
     """
+    # Validate input
+    request = PDBDownloadRequest(pdb_id=pdb_id, output_dir=output_dir)
+    
     pdbl = PDBList()
-    os.makedirs(output_dir, exist_ok=True)
-    file_path = pdbl.retrieve_pdb_file(pdb_id, pdir=output_dir, file_format="pdb")
+    os.makedirs(request.output_dir, exist_ok=True)
+    file_path = pdbl.retrieve_pdb_file(request.pdb_id, pdir=request.output_dir, file_format="pdb")
     return file_path
 
 def get_sequence_from_pdb(pdb_path: str) -> str:
@@ -76,4 +82,18 @@ def clean_and_validate_sequence(raw_sequence: str, valid_chars: str = "ACDEFGHIK
         raise ValueError(f"Invalid characters found in sequence: {bad_chars}")
         
     return clean_seq
+
+def validate_sequence_robust(raw_sequence: str, valid_chars: str = "ACDEFGHIKLMNPQRSTVWY") -> str:
+    """
+    Validates a protein sequence using the strict Pydantic model.
+    
+    Args:
+        raw_sequence (str): Input sequence.
+        valid_chars (str): Allowed characters.
+        
+    Returns:
+        str: Cleaned sequence.
+    """
+    request = ProteinSequenceRequest(sequence=raw_sequence, valid_chars=valid_chars)
+    return request.sequence
     

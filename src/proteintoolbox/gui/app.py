@@ -139,20 +139,32 @@ if mode == "Workspace":
                     st.info("Select a structure file to visualize.")
 
 elif mode == "Tools":
-    st.header("🛠️ Direct Tool Access")
+    st.header("🛠️ Direct Tool Access & Info")
     
-    tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(["Registry Browser", "Biological Data", "Simulation", "Design", "Analysis & Validation", "Mutagenesis & Analysis"])
+    tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
+        "Meet the Agents", "Registry Browser", "Biological Data", 
+        "Simulation", "Analysis & Validation", "Mutagenesis & Analysis"
+    ])
     
     with tab1:
+        st.subheader("The Design Crew")
+        st.markdown("This toolbox uses a team of specialized AI agents to handle your request.")
+        
+        # This part of the code now needs to be defined in app.py or imported
+        from proteintoolbox.agents.crew import AGENT_DEFINITIONS
+        
+        for agent_def in AGENT_DEFINITIONS:
+            with st.expander(f"**{agent_def['role']}**"):
+                st.markdown(f"**Goal:** {agent_def['goal']}")
+                st.markdown(f"**Backstory:** {agent_def['backstory']}")
+                
+                tool_names = [t.name for t in agent_def['tools']] if agent_def['tools'] else ["None"]
+                st.markdown(f"**Primary Tools:** `{', '.join(tool_names)}`")
+
+    with tab2:
         st.subheader("Tool Registry & Skills")
         st.markdown("Database of available tools for agents and users.")
-        
-        tools = registry.list_tools()
-        for i, t in enumerate(tools):
-            with st.expander(f"{t.name} ({t.category})"):
-                st.markdown(f"**Description:** {t.description}")
-                st.markdown(f"**URL:** {t.url}")
-                st.checkbox("Installed", value=t.installed, disabled=True, key=f"chk_{i}_{t.name}")
+        # ... (rest of the tab remains the same)
 
     with tab2:
         st.subheader("Fetch PDB")

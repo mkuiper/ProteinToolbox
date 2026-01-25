@@ -19,12 +19,16 @@ We reserve full MCP servers for:
 *   **Language Agnostic**: If a tool is written in C++ or Rust and exposes an HTTP API, an MCP wrapper is appropriate.
 
 ## Agent Design
-*   **Librarian**: Uses `ToolRegistry` and `PubMed` to research tools and literature.
-*   **Architect**: Plans the high-level scientific workflow.
-*   **Sequence Engineer**: Specialized in ProteinMPNN/evolutionary analysis.
-*   **Structure Analyst**: Specialized in MD/Docking analysis.
-*   **Report Writer**: Synthesizes results into a final report.
-*   **Technician**: Executes specific "Skills" (Python functions) or generates CLI commands for external tools.
+*   **Modular Definitions**: Agent roles, goals, and backstories are defined in a data structure (`AGENT_DEFINITIONS` in `crew.py`). This allows the GUI to display agent capabilities without initializing the agents themselves, preventing startup errors.
+*   **Dynamic Creation**: Agents are created dynamically at runtime from these definitions.
+*   **Specialized Roles**:
+    *   **Methodologist**: Decomposes problems.
+    *   **Librarian**: Researches tools and literature.
+    *   **Architect**: Plans the high-level scientific workflow.
+    *   **Sequence Engineer**: Specialized in ProteinMPNN/evolutionary analysis.
+    *   **Structure Analyst**: Specialized in MD/Docking analysis.
+    *   **Critic**: Validates designs against constraints.
+    *   **Report Writer**: Synthesizes results into a final report.
 
 ## Web GUI
 *   **Framework**: Streamlit.

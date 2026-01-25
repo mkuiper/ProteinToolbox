@@ -28,8 +28,10 @@ for i in $(seq $START_ITER $ITERATIONS); do
     
     Instructions:
     1. **Research**: Find a new tool or method for '$FOCUS'.
-    2. **Implement**: Add the feature. IF YOU ADD A NEW LIBRARY, INSTALL IT WITH 'pip install' AND ADD IT TO 'pyproject.toml'.
-    3. **Document**: Append a entry to '$LOG_FILE' under '## Iteration $i'. Do not overwrite the file, APPEND to it.
+    2. **Implement**: Add the feature. IF YOU ADD A NEW LIBRARY, YOU MUST:
+        a. Run 'pip install <library>' in a shell command.
+        b. Add the library name to 'pyproject.toml'.
+    3. **Document**: Append a detailed entry to '$LOG_FILE' under '## Iteration $i'. Do not overwrite the file, APPEND to it.
     4. **Commit**: Run 'git add .' and 'git commit -m \"Evolution Iteration $i: Added $FOCUS features\"'.
     5. **Verify**: Run 'curl -I http://localhost:8501' to ensure GUI still works.
     
