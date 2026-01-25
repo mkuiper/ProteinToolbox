@@ -59,9 +59,24 @@ class LogicTool(CrewTool):
             
         return output
 
+class DecompositionTool(CrewTool):
+    name: str = "Problem Decomposition"
+    description: str = "Decomposes a complex request into a structured set of sub-tasks and constraints using heuristic logic. Input: The user request string."
+
+    def _run(self, request: str) -> str:
+        decomposition = logic_skills.decompose_request(request)
+        return f"Decomposition Result:\nIntent: {decomposition['intent']}\nImplied Steps: {decomposition['implied_steps']}\nInferred Constraints: {decomposition['inferred_constraints']}"
+
+class ReasoningTool(CrewTool):
+    name: str = "Chain of Thought Templates"
+    description: str = "Retrieves a structured reasoning template for a specific strategy. Input: Strategy name (e.g., 'scientific_method', 'design_cycle', 'root_cause_analysis', 'first_principles')."
+
+    def _run(self, strategy: str) -> str:
+        return logic_skills.get_reasoning_template(strategy)
+
 class ExecuteSkillTool(CrewTool):
     name: str = "Execute Skill"
-    description: str = "Execute a specific python skill. Format: 'skill_name|arg1|arg2'. Available skills: fetch_pdb_structure, run_minimization, generate_backbone, design_sequence, prepare_ligand, run_docking, analyze_sequence, search_pubmed, check_design_constraints, infer_functionality_issues, validate_workflow_logic, propose_refinements."
+    description: str = "Execute a specific python skill. Format: 'skill_name|arg1|arg2'. Available skills: fetch_pdb_structure, run_minimization, generate_backbone, design_sequence, prepare_ligand, run_docking, analyze_sequence, search_pubmed, check_design_constraints, infer_functionality_issues, validate_workflow_logic, propose_refinements, decompose_request, get_reasoning_template."
 
     def _run(self, command: str) -> str:
         try:
@@ -112,13 +127,18 @@ class ExecuteSkillTool(CrewTool):
                 return str(logic_skills.infer_functionality_issues(args[0]))
 
             elif skill_name == "validate_workflow_logic":
-                # Expects a single string argument with steps separated by semicolons
                 steps = [s.strip() for s in args[0].split(';')]
                 return str(logic_skills.validate_workflow_logic(steps))
                 
             elif skill_name == "propose_refinements":
                 steps = [s.strip() for s in args[0].split(';')]
                 return str(logic_skills.propose_refinements(steps))
+
+            elif skill_name == "decompose_request":
+                return str(logic_skills.decompose_request(args[0]))
+
+            elif skill_name == "get_reasoning_template":
+                return str(logic_skills.get_reasoning_template(args[0]))
             
             else:
                 return f"Error: Unknown skill '{skill_name}'"
@@ -143,7 +163,6 @@ def run_design_task(user_request: str, llm_config: dict = None):
         elif provider == 'anthropic':
              llm = LLM(model=f"anthropic/{model}", api_key=api_key)
         elif provider == 'gemini':
-             # Ensure model name starts with gemini/ if not already
              full_model = model if model.startswith("gemini/") else f"gemini/{model}"
              llm = LLM(model=full_model, api_key=api_key)
         elif provider == 'deepseek':
@@ -154,6 +173,16 @@ def run_design_task(user_request: str, llm_config: dict = None):
     
     # --- Agents ---
     
+    # 0. Methodologist (New in Iteration 12)
+    methodologist = Agent(
+        role='Scientific Methodologist',
+        goal='Decompose vague requests into rigorous scientific protocols.',
+        backstory='You are a master of the scientific method and root cause analysis. You ensure the right questions are asked before work begins.',
+        tools=[DecompositionTool(), ReasoningTool()],
+        llm=llm,
+        verbose=True
+    )
+
     # 1. Literature & Strategy
     librarian = Agent(
         role='Scientific Librarian',
@@ -214,14 +243,20 @@ def run_design_task(user_request: str, llm_config: dict = None):
 
     # --- Tasks ---
 
+    task_decompose = Task(
+        description=f"Decompose the request: '{user_request}' using 'Problem Decomposition'. Choose a reasoning strategy (e.g., 'scientific_method' or 'design_cycle') and outline the approach.",
+        agent=methodologist,
+        expected_output="A structured problem decomposition and selected strategy."
+    )
+
     task_research = Task(
-        description=f"Analyze request: '{user_request}'. Search literature (search_pubmed) and registry for relevant info.",
+        description=f"Search literature (search_pubmed) and registry for relevant info based on the methodologist's decomposition.",
         agent=librarian,
         expected_output="Summary of literature and tools found."
     )
 
     task_plan = Task(
-        description=f"Create a step-by-step workflow based on librarian's research.",
+        description=f"Create a step-by-step workflow based on research and decomposition.",
         agent=architect,
         expected_output="Detailed protocol."
     )
@@ -251,8 +286,8 @@ def run_design_task(user_request: str, llm_config: dict = None):
     )
 
     crew = Crew(
-        agents=[librarian, architect, sequence_engineer, critic, structure_analyst, report_writer],
-        tasks=[task_research, task_plan, task_execute_seq, task_critique, task_execute_struct, task_report],
+        agents=[methodologist, librarian, architect, sequence_engineer, critic, structure_analyst, report_writer],
+        tasks=[task_decompose, task_research, task_plan, task_execute_seq, task_critique, task_execute_struct, task_report],
         verbose=True,
         process=Process.sequential
     )

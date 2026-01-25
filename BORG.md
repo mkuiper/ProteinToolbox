@@ -104,3 +104,15 @@
     - Added `get_embedding` capability to generate numerical representations of protein sequences.
     - Added unit test `tests/test_esm_skills.py`.
 - **Status**: Integrated and Verified.
+
+## Iteration 12: Agent Logic and Reasoning
+- **Date**: January 25, 2026
+- **Focus**: Specialized roles and Chain-of-Thought protocols.
+- **New Agent**: `Methodologist` added to `crew.py`. Specializes in decomposing requests into rigorous scientific questions before execution.
+- **New Tools**:
+    - `DecompositionTool`: Uses heuristics to break down requests into steps and constraints.
+    - `ReasoningTool`: Provides structured CoT templates (e.g., "Scientific Method", "Root Cause Analysis") to guide agents.
+- **Skill Updates**:
+    - `logic_skills.py`: Added `decompose_request` and `get_reasoning_template`.
+- **Testing**: Added unit tests for new logic skills in `tests/test_logic_skills.py`.
+- **Status**: Implemented and verified via unit tests.

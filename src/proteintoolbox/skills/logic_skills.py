@@ -151,3 +151,89 @@ def propose_refinements(steps: list[str]) -> list[str]:
         suggestions.append("For protein design, it is recommended to check for 'aggregation' prone regions.")
 
     return suggestions
+
+def get_reasoning_template(strategy: str) -> str:
+    """
+    Returns a Chain-of-Thought (CoT) template for a given strategy.
+    Strategies: 'scientific_method', 'design_cycle', 'root_cause_analysis', 'first_principles'.
+    """
+    templates = {
+        'scientific_method': (
+            "1. Observation: What is the current state or problem?\n"
+            "2. Question: What specific biological question are we asking?\n"
+            "3. Hypothesis: What do we expect to happen?\n"
+            "4. Experiment: How will we test this (tools/methods)?\n"
+            "5. Analysis: How will we interpret the results?"
+        ),
+        'design_cycle': (
+            "1. Specify Requirements: Target properties (stability, binding, etc.).\n"
+            "2. Generate Candidates: Methods for sequence/structure generation.\n"
+            "3. Simulate/Evaluate: In silico validation steps.\n"
+            "4. Refine: Iterative improvement strategy.\n"
+            "5. Final Selection: Criteria for choosing the best candidate."
+        ),
+        'root_cause_analysis': (
+            "1. Problem Definition: What failed or is suboptimal?\n"
+            "2. Possible Causes: List potential reasons (sequence, structure, parameters).\n"
+            "3. Investigation: Check each cause (e.g., steric clashes, unstable fold).\n"
+            "4. Conclusion: Identify the primary driver.\n"
+            "5. Mitigation: Propose a fix."
+        ),
+        'first_principles': (
+            "1. Fundamental Constraints: What are the physical limits (thermodynamics, sterics)?\n"
+            "2. Component Analysis: Break down into amino acids, secondary structures, domains.\n"
+            "3. Construction: Build the solution from these basic components.\n"
+            "4. Verification: Does the built solution satisfy fundamental constraints?"
+        )
+    }
+    return templates.get(strategy, "Unknown strategy. Available: " + ", ".join(templates.keys()))
+
+def decompose_request(request: str) -> dict:
+    """
+    Decomposes a user request into inferred sub-components using keyword heuristics.
+    Returns a structured dictionary of { 'intent': str, 'implied_steps': list, 'constraints': list }
+    """
+    request_lower = request.lower()
+    
+    intent = "unknown"
+    implied_steps = []
+    constraints = []
+    
+    # 1. Determine Intent
+    if "design" in request_lower or "optimize" in request_lower:
+        intent = "design"
+    elif "analyze" in request_lower or "assess" in request_lower:
+        intent = "analysis"
+    elif "dock" in request_lower or "bind" in request_lower:
+        intent = "interaction"
+        
+    # 2. Infer Steps based on Intent and keywords
+    if intent == "design":
+        implied_steps.append("search_literature_or_pdb")
+        implied_steps.append("analyze_target")
+        implied_steps.append("generate_sequences")
+        implied_steps.append("validate_designs")
+        
+    if intent == "interaction" or "dock" in request_lower:
+        if "dock" not in implied_steps:
+            implied_steps.append("prepare_receptor")
+            implied_steps.append("prepare_ligand")
+            implied_steps.append("run_docking")
+            
+    if intent == "analysis":
+        implied_steps.append("load_structure")
+        implied_steps.append("calculate_properties")
+        
+    # 3. Infer Constraints
+    if "stable" in request_lower:
+        constraints.append("min_instability_index")
+    if "soluble" in request_lower:
+        constraints.append("solubility_preference")
+    if "binder" in request_lower:
+        constraints.append("high_affinity")
+
+    return {
+        "intent": intent,
+        "implied_steps": implied_steps,
+        "inferred_constraints": constraints
+    }
