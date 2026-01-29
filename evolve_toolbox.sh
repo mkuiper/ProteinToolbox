@@ -1,10 +1,19 @@
 #!/bin/bash
 
 # Configuration
-START_ITER=7
-ITERATIONS=50
+START_ITER=${START_ITER:-7}
+ITERATIONS=${ITERATIONS:-50}
 LOG_FILE="ProteinToolbox/BORG.md"
-CLI_CMD="gemini"
+
+# SAFETY:
+# - Avoid gemini "-y" / "--yolo" (auto-approve) by default.
+# - Force a Node runtime that supports modern JS regex (/v flag), and avoid broken NODE_OPTIONS.
+GEMINI_NODE="/home/mike/.n/bin/node"
+GEMINI_ENTRY="/home/mike/.local/lib/node_modules/@google/gemini-cli/dist/index.js"
+CLI_CMD=(env -u NODE_OPTIONS "$GEMINI_NODE" "$GEMINI_ENTRY")
+
+# Set RUN_ONCE=1 to execute a single iteration (recommended).
+RUN_ONCE=${RUN_ONCE:-1}
 
 echo "Resuming ProteinToolbox Evolution Loop from Iteration $START_ITER..."
 
@@ -37,15 +46,25 @@ for i in $(seq $START_ITER $ITERATIONS); do
     
     Maintain high scientific standards. Be creative."
 
-    echo "Sending prompt to Agent..."
-    $CLI_CMD -y "$PROMPT"
-    
+    echo "Prompt to Gemini (review recommended):"
+    echo "--------------------------------------------------"
+    echo "$PROMPT"
+    echo "--------------------------------------------------"
+
+    # Run Gemini (one-shot, NO auto-approve):
+    "${CLI_CMD[@]}" "$PROMPT"
+
     EXIT_CODE=$?
     if [ $EXIT_CODE -ne 0 ]; then
         echo "Error: Agent exited with code $EXIT_CODE. Pausing loop."
         break
     fi
     
+    if [ "$RUN_ONCE" = "1" ]; then
+        echo "RUN_ONCE=1 set; stopping after iteration $i."
+        break
+    fi
+
     echo "Iteration $i complete. Waiting 10 seconds..."
     sleep 10
 done
