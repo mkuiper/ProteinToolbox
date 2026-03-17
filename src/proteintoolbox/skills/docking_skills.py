@@ -1,7 +1,11 @@
 import os
-from vina import Vina
-from meeko import MoleculePreparation
-from rdkit import Chem
+try:
+    from vina import Vina
+    from meeko import MoleculePreparation
+    from rdkit import Chem
+    _DOCKING_AVAILABLE = True
+except ImportError:
+    _DOCKING_AVAILABLE = False
 
 def prepare_ligand(ligand_path: str, output_path: str = None) -> str:
     """

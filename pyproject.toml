@@ -27,6 +27,8 @@ dependencies = [
     "tenacity",
     "pydantic",
     "networkx",
+    "scikit-learn",
+    "kaleido",
 ]
 
 [build-system]

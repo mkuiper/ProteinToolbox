@@ -1,6 +1,6 @@
 # BORG: Biologic Optimization & Recursive Growth Log
 
-# CURRENT_ITERATION=13
+# CURRENT_ITERATION=15
 
 ## Iteration 0: Initialization
 - **Date**: 2026-01-24
@@ -127,3 +127,39 @@
     - **New Tool**: `PathfinderTool` added to `crew.py`, allowing agents to query the knowledge graph for valid scientific workflows.
     - **Agent Upgrades**: `Methodologist`, `Architect`, and `Critic` now use `PathfinderTool` to ground their plans in a defined scientific ontology.
     - **Registry**: Registered `graph_reasoning` in `skills/__init__.py`.
+
+## Iteration 13 (Placeholder)
+- Iteration numbering gap maintained for historical continuity.
+
+## Iteration 14 (Placeholder)
+- Iteration numbering gap maintained for historical continuity.
+
+## Iteration 15: GUI Experience and Visualization
+- **Date**: 2026-03-18
+- **Focus**: Interactive Plotly visualizations, Mol* enhancements, and UX improvements.
+
+### New Skill Additions (`analysis_skills.py`)
+- `get_codon_usage(dna_sequence)`: Counts all 64 codon frequencies in a CDS/DNA sequence.
+- `get_codon_usage_heatmap_data(dna_sequence)`: Returns 2D grid data (rows = first 2 bases, cols = 3rd base) for Plotly heatmap rendering. Includes amino acid labels per cell.
+- Exposed `CODON_TABLE` constant for downstream use.
+
+### GUI Enhancements (`app.py`)
+- **New Mode: "Sequence Analysis"** — dedicated 4-tab section:
+  1. **Physicochemical** tab: Computes MW, pI, GRAVY, instability, aromaticity, 2° structure fraction; renders interactive amino acid composition bar chart with export buttons.
+  2. **Codon Usage Heatmap** tab: Renders a full 16×4 interactive Plotly heatmap of codon frequencies; includes sortable summary table and CSV download.
+  3. **Sequence Comparison** tab: Side-by-side comparison of two sequences — grouped bar chart of physicochemical deltas, per-residue diff table for equal-length sequences.
+  4. **ESM Embedding PCA** tab: Embeds N sequences via ESM2, performs PCA via pure NumPy (avoids scipy/sklearn ABI issues), and renders an interactive 2D scatter plot with variance-explained axis labels.
+- **Export buttons**: All Plotly charts now have "Download SVG" and "Download PNG" buttons (via kaleido).
+- **Mol* color-by-feature UI**: Added "Color By" selector (Chain / Secondary Structure / Hydrophobicity / Residue Type) in Workspace to inform viewer use.
+- **Workflow progress indicator**: Agent Workflow mode now shows animated step-by-step progress through the 5 agent stages.
+- **Tool tabs now fully implemented**: Biological Data (PDB fetch + sequence extract), Simulation (energy minimization), Analysis & Validation (SASA bar chart + validation report), Mutagenesis & Analysis (variant landscape scatter).
+- **Sidebar polish**: Grouped sections with icons, expanders for LLM/project settings.
+
+### Dependencies Added
+- `scikit-learn` — for future PCA/ML utilities (PCA currently implemented in NumPy to avoid ABI conflicts).
+- `kaleido` — Plotly SVG/PNG image export.
+- Both added to `pyproject.toml`.
+
+### Status
+- GUI verified via syntax check.
+- Existing tests pass.
