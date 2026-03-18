@@ -1,6 +1,6 @@
 # BORG: Biologic Optimization & Recursive Growth Log
 
-# CURRENT_ITERATION=15
+# CURRENT_ITERATION=16
 
 ## Iteration 0: Initialization
 - **Date**: 2026-01-24
@@ -163,3 +163,38 @@
 ### Status
 - GUI verified via syntax check.
 - Existing tests pass.
+
+## Iteration 16: New Skills and Integrations
+- **Date**: 2026-03-18
+- **Focus**: SOTA protein design capabilities — ESMFold, Boltz-1/AF3, AMP design.
+
+### New Skill: ESMFold REST API Wrapper (`esm_fold_skill.py`)
+- `predict_structure_esmfold(sequence)`: Calls the ESM Atlas public REST API for fast single-sequence structure prediction. Returns PDB string. No local GPU required.
+- `get_esmfold_confidence(pdb_string)`: Parses per-residue pLDDT confidence from the B-factor column; returns mean pLDDT and high-confidence fraction.
+- Robust error handling for API timeouts, invalid sequences, and non-PDB responses.
+
+### New Skill: Structure Prediction Wrappers (`structure_prediction_skills.py`)
+- `check_tools_available()`: Detects installed predictors — Boltz-1, AlphaFold3, local ESMFold (fair-esm), ColabFold — and returns install hints for missing tools.
+- `predict_with_boltz(fasta_path, output_dir)`: Runs Boltz-1 CLI when installed; returns a dry-run dict with the exact command and install instructions otherwise.
+- `predict_with_af3(fasta_path, output_dir)`: Runs AlphaFold3 CLI when installed; dry-run stub otherwise.
+- Both functions return a consistent `{status, command, output_dir, message}` dict.
+
+### New Skill: AMP Design (`amp_skills.py`)
+- `score_amp_potential(sequence)`: Heuristic AMP score (0–100) based on net charge at pH 7, hydrophobic moment (Eisenberg scale), length optimality, and amphipathicity index. Returns score, grade, sub-scores, and plain-English notes.
+- `generate_amp_variants(sequence, n=5)`: Generates AMP-optimized single-residue substitution variants by targeting low charge, low amphipathicity, and local sequence diversity. Returns top-N by AMP score.
+- Pure-Python / NumPy — no external ML dependencies.
+
+### GUI Enhancements (`app.py`)
+- **New mode: "Structure Prediction"**: Three-tab panel (ESMFold API, Boltz-1, AlphaFold3) with live tool availability status. ESMFold tab renders pLDDT bar chart with PDB download. Boltz/AF3 tabs show dry-run commands with install instructions when not installed.
+- **New tab in "Sequence Analysis": "AMP Design"**: Side-by-side score + variant panels. Scores displayed as metrics + sub-score bar chart; variants shown in ranked bar chart with CSV download.
+
+### Registry Updates
+- `esm_fold_skill`, `structure_prediction_skills`, `amp_skills` added to `skills/__init__.py` and `SKILL_REGISTRY`.
+
+### Tests
+- `tests/test_amp_skills.py` — 14 tests covering scoring, grading, variant generation, error handling.
+- `tests/test_esm_fold_skill.py` — 8 tests covering confidence parsing and input validation (no live API calls).
+- `tests/test_structure_prediction_skills.py` — 7 tests covering tool detection and dry-run behaviour.
+
+### Status
+- All 61 tests pass.

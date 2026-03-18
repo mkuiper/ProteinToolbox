@@ -17,6 +17,9 @@ from . import (
     structure_skills,
     validation_skills,
     graph_reasoning,
+    esm_fold_skill,
+    structure_prediction_skills,
+    amp_skills,
 )
 
 # List of all skill modules to be introspected
@@ -32,6 +35,9 @@ SKILL_MODULES = [
     structure_skills,
     validation_skills,
     graph_reasoning,
+    esm_fold_skill,
+    structure_prediction_skills,
+    amp_skills,
 ]
 
 SKILL_REGISTRY = {}

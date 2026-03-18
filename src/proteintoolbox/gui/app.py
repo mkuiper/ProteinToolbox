@@ -11,6 +11,7 @@ from streamlit_molstar import st_molstar, st_molstar_rcsb
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../')))
 
 from proteintoolbox.skills import bio_skills, sim_skills, design_skills, docs_skills, structure_skills, validation_skills, analysis_skills
+from proteintoolbox.skills import esm_fold_skill, structure_prediction_skills, amp_skills
 from proteintoolbox.agents.crew import run_design_task
 from proteintoolbox.project import ProjectManager
 from proteintoolbox.registry import ToolRegistry
@@ -99,7 +100,7 @@ with st.sidebar:
 
     st.divider()
     st.header("🔀 Navigation")
-    mode = st.radio("Mode", ["Workspace", "Agent Workflow", "Tools", "Sequence Analysis"])
+    mode = st.radio("Mode", ["Workspace", "Agent Workflow", "Tools", "Sequence Analysis", "Structure Prediction"])
 
     st.divider()
     show_tutorial = st.toggle("📚 Tutorial Mode", value=False, help="Show helper text and explanations for tools.")
@@ -177,7 +178,7 @@ if mode == "Workspace":
 elif mode == "Sequence Analysis":
     st.header("🔬 Sequence Analysis & Visualization")
 
-    seq_tabs = st.tabs(["Physicochemical", "Codon Usage Heatmap", "Sequence Comparison", "ESM Embedding PCA"])
+    seq_tabs = st.tabs(["Physicochemical", "Codon Usage Heatmap", "Sequence Comparison", "ESM Embedding PCA", "AMP Design"])
 
     # ── Tab 1: Physicochemical ────────────────────────────────────────────────
     with seq_tabs[0]:
@@ -418,6 +419,115 @@ elif mode == "Sequence Analysis":
                         except Exception as e:
                             st.error(f"ESM embedding error: {e}")
 
+    # ── Tab 5: AMP Design ─────────────────────────────────────────────────────
+    with seq_tabs[4]:
+        st.subheader("Antimicrobial Peptide (AMP) Design")
+        if show_tutorial:
+            st.info(
+                "💡 **AMP Design**: Score a peptide's antimicrobial potential using "
+                "net charge, hydrophobic moment, amphipathicity, and length heuristics. "
+                "Then generate optimized variants with improved AMP profiles."
+            )
+
+        amp_seq = st.text_area(
+            "Peptide Sequence (1-letter AA)",
+            height=80,
+            key="amp_seq",
+            placeholder="ILPWKWPWWPWRR",
+            help="Typical AMPs are 10–40 residues, cationic (+2 to +9), and amphipathic.",
+        )
+
+        col_score, col_gen = st.columns([1, 1])
+        with col_score:
+            if st.button("Score AMP Potential", key="btn_amp_score") and amp_seq:
+                try:
+                    clean_amp = bio_skills.clean_and_validate_sequence(amp_seq)
+                    result = amp_skills.score_amp_potential(clean_amp)
+
+                    grade_color = {
+                        "Excellent": "green", "Good": "blue",
+                        "Moderate": "orange", "Poor": "red",
+                    }.get(result["grade"], "grey")
+
+                    st.metric("AMP Score", f"{result['score']:.1f} / 100",
+                              delta=result["grade"])
+                    st.markdown(
+                        f"<span style='color:{grade_color};font-weight:bold;font-size:1.1em;'>"
+                        f"Grade: {result['grade']}</span>",
+                        unsafe_allow_html=True,
+                    )
+
+                    st.markdown("#### Component Scores")
+                    sub = result["sub_scores"]
+                    c1, c2, c3, c4 = st.columns(4)
+                    c1.metric("Charge", f"{sub['charge']:.0f}", help=f"Net charge: {result['net_charge']:+.1f}")
+                    c2.metric("Hydrophobic Moment", f"{sub['hydrophobic_moment']:.0f}",
+                              help=f"μH = {result['hydrophobic_moment']:.3f}")
+                    c3.metric("Length", f"{sub['length']:.0f}",
+                              help=f"{result['length']} residues")
+                    c4.metric("Amphipathicity", f"{sub['amphipathicity']:.0f}",
+                              help=f"Index = {result['amphipathicity_index']:.3f}")
+
+                    # Radar / bar chart of sub-scores
+                    sub_df = pd.DataFrame(
+                        list(sub.items()), columns=["Component", "Score"]
+                    )
+                    sub_df["Component"] = sub_df["Component"].str.replace("_", " ").str.title()
+                    fig_sub = px.bar(
+                        sub_df, x="Component", y="Score",
+                        title="AMP Sub-Score Breakdown",
+                        color="Score",
+                        color_continuous_scale="RdYlGn",
+                        range_color=[0, 100],
+                    )
+                    fig_sub.update_layout(height=320, showlegend=False,
+                                          yaxis=dict(range=[0, 100]))
+                    st.plotly_chart(fig_sub, use_container_width=True)
+                    _plot_download_buttons(fig_sub, "amp_subscores")
+
+                    st.markdown("#### Analysis Notes")
+                    for note in result["explanation"]:
+                        st.markdown(f"- {note}")
+
+                except ValueError as e:
+                    st.error(str(e))
+
+        with col_gen:
+            n_variants = st.slider("Variants to generate", 3, 20, 5, key="amp_n_var")
+            if st.button("Generate AMP Variants", key="btn_amp_gen") and amp_seq:
+                try:
+                    clean_amp = bio_skills.clean_and_validate_sequence(amp_seq)
+                    with st.spinner("Generating and scoring variants…"):
+                        variants = amp_skills.generate_amp_variants(clean_amp, n=n_variants)
+
+                    st.success(f"Top {len(variants)} variants by AMP score:")
+                    df_var = pd.DataFrame(
+                        [(seq, score) for seq, score in variants],
+                        columns=["Sequence", "AMP Score"],
+                    )
+                    df_var["Delta vs Seed"] = df_var["AMP Score"] - variants[0][1] if variants else 0
+
+                    # Color-coded scatter: position vs score
+                    fig_v = px.bar(
+                        df_var.reset_index(), x="index", y="AMP Score",
+                        hover_data=["Sequence"],
+                        title="AMP Variant Scores",
+                        color="AMP Score",
+                        color_continuous_scale="RdYlGn",
+                        range_color=[0, 100],
+                    )
+                    fig_v.update_layout(height=300, xaxis_title="Variant Rank")
+                    st.plotly_chart(fig_v, use_container_width=True)
+                    _plot_download_buttons(fig_v, "amp_variants")
+
+                    st.dataframe(df_var, use_container_width=True)
+                    csv_amp = df_var.to_csv(index=False)
+                    st.download_button("⬇ Download CSV", csv_amp,
+                                       file_name="amp_variants.csv", mime="text/csv")
+
+                except ValueError as e:
+                    st.error(str(e))
+
 
 # ─── TOOLS ───────────────────────────────────────────────────────────────────
 elif mode == "Tools":
@@ -643,6 +753,177 @@ elif mode == "Tools":
             st.session_state["sat_pos"] = st.number_input(
                 "Position to Saturate (1-indexed)", min_value=1, value=1, key="sat_pos_input"
             )
+
+
+# ─── STRUCTURE PREDICTION ─────────────────────────────────────────────────────
+elif mode == "Structure Prediction":
+    st.header("🔮 Structure Prediction")
+    st.markdown(
+        "Predict 3D structures using SOTA models. "
+        "ESMFold runs via the public REST API; Boltz-1 and AlphaFold3 run locally when installed."
+    )
+
+    # Tool availability status panel
+    with st.expander("🔧 Tool Availability Status", expanded=True):
+        with st.spinner("Checking installed tools…"):
+            tools_status = structure_prediction_skills.check_tools_available()
+
+        cols = st.columns(len(tools_status))
+        icons = {"boltz": "⚡", "alphafold3": "🔬", "esmfold_local": "🧬", "colabfold": "☁️"}
+        for col, (tool, status) in zip(cols, tools_status.items()):
+            installed = status is True
+            col.metric(
+                label=f"{icons.get(tool, '🔧')} {tool}",
+                value="Installed" if installed else "Not installed",
+                delta="Ready" if installed else "Stub mode",
+            )
+            if not installed:
+                col.caption(str(status)[:120])
+
+    sp_tabs = st.tabs(["ESMFold (API)", "Boltz-1", "AlphaFold3"])
+
+    # ── ESMFold tab ────────────────────────────────────────────────────────────
+    with sp_tabs[0]:
+        st.subheader("ESMFold — Single-Sequence Structure Prediction")
+        st.markdown(
+            "Uses the **ESM Atlas public REST API** (EvolutionaryScale / Meta). "
+            "No local GPU required. Suitable for sequences up to ~400 residues."
+        )
+        if show_tutorial:
+            st.info(
+                "💡 ESMFold predicts 3D structure from sequence alone in seconds. "
+                "pLDDT > 70 indicates reliable prediction. "
+                "The output PDB can be visualized in the Workspace."
+            )
+
+        esm_seq = st.text_area(
+            "Protein Sequence (1-letter AA)",
+            height=100,
+            key="esm_fold_seq",
+            placeholder="MGSSHHHHHHSSGLVPRGSHMASMTGGQQMGRDLYDDDDK…",
+        )
+        esm_out_dir = st.text_input("Save PDB to directory", value="output/esmfold", key="esm_out_dir")
+
+        if st.button("Predict Structure (ESMFold)", key="btn_esmfold") and esm_seq:
+            try:
+                clean_esm = bio_skills.clean_and_validate_sequence(esm_seq)
+                if len(clean_esm) > 400:
+                    st.warning(f"Sequence is {len(clean_esm)} aa — the public API may time out for sequences > 400 aa.")
+                with st.spinner(f"Calling ESMFold API for {len(clean_esm)}-residue sequence… (may take ~30–120 s)"):
+                    pdb_str = esm_fold_skill.predict_structure_esmfold(clean_esm)
+
+                conf = esm_fold_skill.get_esmfold_confidence(pdb_str)
+                c1, c2 = st.columns(2)
+                c1.metric("Mean pLDDT", f"{conf['mean_plddt']:.1f}")
+                c2.metric("High-confidence residues (pLDDT ≥ 70)",
+                           f"{conf['high_confidence_fraction']:.0%}")
+
+                # pLDDT per-residue bar chart
+                if conf["per_residue"]:
+                    df_plddt = pd.DataFrame(conf["per_residue"], columns=["Residue", "pLDDT"])
+                    fig_plddt = px.bar(
+                        df_plddt, x="Residue", y="pLDDT",
+                        title="Per-residue pLDDT Confidence",
+                        color="pLDDT", color_continuous_scale="RdYlGn",
+                        range_color=[0, 100],
+                    )
+                    fig_plddt.add_hline(y=70, line_dash="dash", line_color="orange",
+                                        annotation_text="pLDDT=70")
+                    fig_plddt.update_layout(height=300)
+                    st.plotly_chart(fig_plddt, use_container_width=True)
+                    _plot_download_buttons(fig_plddt, "esmfold_plddt")
+
+                # Save PDB file
+                import os
+                os.makedirs(esm_out_dir, exist_ok=True)
+                pdb_filename = os.path.join(esm_out_dir, f"esmfold_{clean_esm[:8]}.pdb")
+                with open(pdb_filename, "w") as fh:
+                    fh.write(pdb_str)
+                st.success(f"PDB saved: `{pdb_filename}`")
+                st.download_button("⬇ Download PDB", pdb_str,
+                                   file_name="esmfold_prediction.pdb",
+                                   mime="chemical/x-pdb")
+
+            except (ValueError, RuntimeError) as e:
+                st.error(str(e))
+
+    # ── Boltz-1 tab ────────────────────────────────────────────────────────────
+    with sp_tabs[1]:
+        st.subheader("Boltz-1 — Open-Source Biomolecular Structure Predictor")
+        st.markdown(
+            "**Boltz-1** is an open-weight structure predictor supporting proteins, "
+            "nucleic acids, ligands, and covalent modifications. "
+            "AlphaFold3-level accuracy; runs locally on CPU or GPU."
+        )
+        if show_tutorial:
+            st.info(
+                "💡 Install Boltz-1 with: `pip install boltz` (requires PyTorch). "
+                "Provide a FASTA file and output directory. "
+                "If Boltz is not installed, a dry-run command is shown."
+            )
+
+        boltz_fasta = st.text_input("FASTA File Path", key="boltz_fasta",
+                                     placeholder="/path/to/sequence.fasta")
+        boltz_out = st.text_input("Output Directory", value="output/boltz", key="boltz_out")
+
+        if st.button("Run Boltz-1 Prediction", key="btn_boltz"):
+            if not boltz_fasta:
+                st.error("Provide a FASTA file path.")
+            else:
+                with st.spinner("Running Boltz-1…"):
+                    result = structure_prediction_skills.predict_with_boltz(boltz_fasta, boltz_out)
+
+                status = result["status"]
+                if status == "success":
+                    st.success(result["message"])
+                    st.code(result["command"])
+                elif status == "dry_run":
+                    st.info("Dry run (Boltz-1 not installed):")
+                    st.markdown(result["message"])
+                    st.code(result["command"], language="bash")
+                else:
+                    st.error(result["message"])
+                    if "error" in result:
+                        st.code(result["error"])
+
+    # ── AlphaFold3 tab ─────────────────────────────────────────────────────────
+    with sp_tabs[2]:
+        st.subheader("AlphaFold3 — Google DeepMind All-Atom Predictor")
+        st.markdown(
+            "**AlphaFold3** predicts all-atom structures of proteins, DNA, RNA, "
+            "small molecules, and ions with state-of-the-art accuracy. "
+            "Requires academic-use model weights (~1 TB)."
+        )
+        if show_tutorial:
+            st.info(
+                "💡 AF3 weights require registration at "
+                "github.com/google-deepmind/alphafold3. "
+                "If AF3 is not installed, a dry-run command is shown."
+            )
+
+        af3_fasta = st.text_input("FASTA File Path", key="af3_fasta",
+                                   placeholder="/path/to/sequence.fasta")
+        af3_out = st.text_input("Output Directory", value="output/af3", key="af3_out")
+
+        if st.button("Run AlphaFold3 Prediction", key="btn_af3"):
+            if not af3_fasta:
+                st.error("Provide a FASTA file path.")
+            else:
+                with st.spinner("Running AlphaFold3…"):
+                    result = structure_prediction_skills.predict_with_af3(af3_fasta, af3_out)
+
+                status = result["status"]
+                if status == "success":
+                    st.success(result["message"])
+                    st.code(result["command"])
+                elif status == "dry_run":
+                    st.info("Dry run (AlphaFold3 not installed):")
+                    st.markdown(result["message"])
+                    st.code(result["command"], language="bash")
+                else:
+                    st.error(result["message"])
+                    if "error" in result:
+                        st.code(result["error"])
 
 
 # ─── AGENT WORKFLOW ───────────────────────────────────────────────────────────
